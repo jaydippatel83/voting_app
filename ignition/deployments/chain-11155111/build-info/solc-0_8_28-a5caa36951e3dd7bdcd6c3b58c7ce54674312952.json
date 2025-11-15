@@ -1,0 +1,39 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-a5caa36951e3dd7bdcd6c3b58c7ce54674312952",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "userSourceNameMap": {
+    "contracts/Voting.sol": "project/contracts/Voting.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/Voting.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.19;\n\n/**\n * @title Voting\n * @dev A simple voting smart contract that allows users to vote on proposals\n */\ncontract Voting {\n    // Struct to represent a proposal\n    struct Proposal {\n        string description;\n        uint256 voteCount;\n    }\n\n    // Array to store all proposals\n    Proposal[] public proposals;\n\n    // Mapping to track if an address has voted\n    mapping(address => bool) public hasVoted;\n\n    // Address of the contract owner\n    address public owner;\n\n    // Events\n    event ProposalCreated(uint256 indexed proposalId, string description);\n    event Voted(address indexed voter, uint256 indexed proposalId);\n\n    // Modifier to restrict functions to owner only\n    modifier onlyOwner() {\n        require(msg.sender == owner, \"Only owner can call this function\");\n        _;\n    }\n\n    // Modifier to check if user has not voted\n    modifier hasNotVoted() {\n        require(!hasVoted[msg.sender], \"You have already voted\");\n        _;\n    }\n\n    /**\n     * @dev Constructor - Initialize contract with initial proposals\n     * @param proposalDescriptions Array of initial proposal descriptions\n     */\n    constructor(string[] memory proposalDescriptions) {\n        owner = msg.sender;\n\n        // Initialize proposals\n        for (uint256 i = 0; i < proposalDescriptions.length; i++) {\n            proposals.push(Proposal({\n                description: proposalDescriptions[i],\n                voteCount: 0\n            }));\n            emit ProposalCreated(i, proposalDescriptions[i]);\n        }\n    }\n\n    /**\n     * @dev Add a new proposal (only owner)\n     * @param description The description of the new proposal\n     */\n    function addProposal(string memory description) public onlyOwner {\n        uint256 proposalId = proposals.length;\n        proposals.push(Proposal({\n            description: description,\n            voteCount: 0\n        }));\n        emit ProposalCreated(proposalId, description);\n    }\n\n    /**\n     * @dev Vote for a proposal\n     * @param proposalId The ID of the proposal to vote for\n     */\n    function vote(uint256 proposalId) public hasNotVoted {\n        require(proposalId < proposals.length, \"Invalid proposal ID\");\n\n        proposals[proposalId].voteCount += 1;\n        hasVoted[msg.sender] = true;\n\n        emit Voted(msg.sender, proposalId);\n    }\n\n    /**\n     * @dev Get the total number of proposals\n     * @return The number of proposals\n     */\n    function getProposalCount() public view returns (uint256) {\n        return proposals.length;\n    }\n\n    /**\n     * @dev Get all proposals\n     * @return Array of all proposals\n     */\n    function getAllProposals() public view returns (Proposal[] memory) {\n        return proposals;\n    }\n\n \n    function getProposal(uint256 proposalId) public view returns (string memory description, uint256 voteCount) {\n        require(proposalId < proposals.length, \"Invalid proposal ID\");\n        Proposal memory proposal = proposals[proposalId];\n        return (proposal.description, proposal.voteCount);\n    }\n\n    /**\n     * @dev Get the winning proposal\n     * @return winningProposalId The ID of the winning proposal\n     * @return winningProposalDescription The description of the winning proposal\n     * @return winningVoteCount The vote count of the winning proposal\n     */\n    function getWinner() public view returns (\n        uint256 winningProposalId,\n        string memory winningProposalDescription,\n        uint256 winningVoteCount\n    ) {\n        require(proposals.length > 0, \"No proposals available\");\n\n        winningProposalId = 0;\n        winningVoteCount = proposals[0].voteCount;\n\n        for (uint256 i = 1; i < proposals.length; i++) {\n            if (proposals[i].voteCount > winningVoteCount) {\n                winningProposalId = i;\n                winningVoteCount = proposals[i].voteCount;\n            }\n        }\n\n        winningProposalDescription = proposals[winningProposalId].description;\n    }\n\n    /**\n     * @dev Check if an address has voted\n     * @param voter The address to check\n     * @return Boolean indicating if the address has voted\n     */\n    function checkIfVoted(address voter) public view returns (bool) {\n        return hasVoted[voter];\n    }\n}\n"
+      }
+    }
+  }
+}
